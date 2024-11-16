@@ -5,7 +5,7 @@ import time
 class Expense:
     def __init__(self, id, description, amount):
         self.id  = id
-        self.date = time.strftime("%y-%m-%d", time.localtime())
+        self.date = time.strftime("%d-%m-%y", time.localtime())
         self.description  = description 
         self.amount  = amount 
 #--------------------------------------------------------------------------------------------------------------------------------
@@ -68,15 +68,56 @@ def delete(value):
     main()
 #--------------------------------------------------------------------------------------------------------------------------------
 
+def align(data, id, current, column):
+    Gap = [0, 0]
+    Gap[0], Gap[1] = " " * ((round(len(str(data[id][column])) / 2)) - round(len(str(data[current][column])) / 2 )), " " * ((len(str(data[id][column])) - round(len(str(data[id][column])) / 2)) - (len(str(data[current][column])) - round(len(str(data[current][column])) / 2 ))) 
+    return Gap
+#--------------------------------------------------------------------------------------------------------------------------------
+def list():
+    with open("data.json", "r") as file:
+        data = js.load(file)
+        gap = " "*11
+        id = 0
+        amount = 0
+        for i in data[1:]:
+            if len(i["description"]) > len(data[id]["description"]):
+                id = int(i["id"])
+            if len(str(i["amount"])) > len(str(data[amount]["amount"])):
+                amount = int(i["id"])
+        print(f"{ data[0]['id'] }{gap}{ data[0]['date'] }{gap}{align(data, id, 0, 'description')[0]}{ data[0]['description'] }{align(data, id, 0, 'description')[1]}{gap}{align(data, 0, int(i['id']), 'amount')[0]}{ data[0]['amount'] }{align(data, 0, int(i['id']), 'amount')[1]}")
+        for i in data[1:]:
+            print(f"{ i['id'] }{gap[(len(str(i['id'])) - 1):]}{ i['date'] }{gap[2:]}{align(data, id, int(i['id']), 'description')[0]}{ i['description'] }{align(data, id, int(i['id']), 'description')[1]}{gap}{align(data, amount, int(i['id']), 'amount')[0]}{ i['amount'] }{align(data, amount, int(i['id']), 'amount')[1]}")
+
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+def summary(month = 0):
+    with open("data.json", "r") as file:
+        data = js.load(file)
+        summary = 0
+        if int(month) == 0:
+            for i in data[1:]:
+                summary += int(i["amount"])
+        elif 1 <= int(month) <= 12:
+            for i in data[1:]:
+                if i["date"].split("-")[1] == month:
+                    summary += int(i["amount"])
+        else:
+            print("wrong month \n")
+            main()
+        print("Total expenses: ", summary)
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
 def main():
     comma = input("Write command: ").split(maxsplit=1)
     try:
         if len(comma) == 1:
             func = comma[0]
-            value = None
+            globals()[func]()
         else:
             func, value = comma
-        globals()[func](value)
+            globals()[func](value)
     except (KeyError, TypeError):
         print("wrong command")
     except AttributeError:
@@ -94,7 +135,7 @@ def WakeUp():
     except FileNotFoundError:
         print("no data file\n\nmaking data file")
         with open('data.json', 'w') as file:
-            js.dump([{'id': 'ID', 'date': "Date", "description": 'description', "amount": "amount"}], file)
+            js.dump([{'id': 'ID', 'date': " Date", "description": 'description', "amount": "amount"}], file)
     main()
 
     
